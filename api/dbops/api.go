@@ -1,8 +1,8 @@
 package dbops
 
 import (
-	"Video_server/api/defs"
-	"Video_server/api/utils"
+	"Video_Server/api/defs"
+	"Video_Server/api/utils"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
@@ -83,19 +83,20 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	// video创建时间和写入DB的时间，是串行的。不会出现错乱的情况。
 	// DB中的时间方便用来排序，video创建时间方便在页面展示。
 	t := time.Now()
 
 	// 既定写法，不要更改。
 	ctime := t.Format("Jan 02 2006, 15:04:05")
-	stmtIns, err := dbConn.Prepare(`INSERT INTO video_info  
-		(id, author_id, name, display_ctime) VALUES(?, ?, ?, ?)`)
+	stmtIns, err := dbConn.Prepare(`INSERT INTO video_info 
+		(video_id, author_id, name, display_ctime, create_time) VALUES(?, ?, ?, ?, ?)`)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = stmtIns.Exec(vid, aid, name, ctime)
+	_, err = stmtIns.Exec(vid, aid, name, ctime, t)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 }
 
 func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
-	stmtOut, err := dbConn.Prepare("SELECT author_id, name, display_ctime FROM video_info WHERE video_info=?")
+	stmtOut, err := dbConn.Prepare("SELECT author_id, name, display_ctime FROM video_info WHERE video_id=?")
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +122,10 @@ func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
 	err = stmtOut.QueryRow(vid).Scan(&aid, &name, &ctime)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
 	}
 
 	defer stmtOut.Close()

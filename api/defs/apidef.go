@@ -12,6 +12,6 @@ type VideoInfo struct {
 	AuthorId     int
 	Name         string
 	DisplayCtime string
-	// create_time 该属性意义不大，只在DB model中有用。
+	// create_time  string // 该属性意义不大，只在DB model中有用。
 
 }

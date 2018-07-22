@@ -9,16 +9,6 @@ import (
 	"time"
 )
 
-// // 已在同级目录下conn.go文件中初始化完成,起到复用的效果。
-// func openConn() *sql.DB {
-// 	dbConn, err := sql.Open("mysql", "mysqlcli:12345678@tcp(10.68.7.24:3306)/video_server?charset=utf8")
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
-
-// 	return dbConn
-// }
-
 // 增加用户凭证.
 func AddUserCredential(loginName string, pwd string) error {
 	// 使用+拼接容易被撞库或攻击.
@@ -101,7 +91,12 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 		return nil, err
 	}
 
-	res := &defs.VideoInfo{Id: vid, AuthorId: aid, Name: name, DisplayCtime: ctime}
+	res := &defs.VideoInfo{
+		Id:           vid,
+		AuthorId:     aid,
+		Name:         name,
+		DisplayCtime: ctime,
+	}
 
 	defer stmtIns.Close()
 	return res, nil
@@ -150,4 +145,66 @@ func DeleteVideoInfo(vid string) error {
 
 	return nil
 
+}
+
+// 评论 - 增、改
+
+func AddNewComments(aid int, vid string, content string) error {
+	// create uuid
+	id, err := utils.NewUUID()
+	if err != nil {
+		return err
+	}
+
+	t := time.Now()
+
+	stmtIns, err := dbConn.Prepare(`INSERT INTO comments
+		(comments_id, video_id, author_id, content, time) VALUES(?, ?, ?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmtIns.Exec(id, vid, aid, content, t)
+	if err != nil {
+		return err
+	}
+
+	defer stmtIns.Close()
+	return nil
+}
+
+func ListComments(vid string, from, to int) ([]*defs.CommentInfo, error) {
+	// users表 join comments表
+	// comments -> author id, video id -> comments
+	// users -> author id -> login name
+	stmtOut, err := dbConn.Prepare(`SELECT comments.comments_id, users.login_name, comments.content FROM 
+		comments INNER JOIN users ON comments.author_id=users.users_id WHERE comments.video_id=? AND 
+		comments.time > FROM_UNIXTIME(?) AND comments.time <= FROM_UNIXTIME(?)`)
+
+	var res []*defs.CommentInfo
+
+	rows, err := stmtOut.Query(vid, from, to)
+	if err != nil {
+		return res, err
+	}
+
+	for rows.Next() {
+		var id, name, content string
+		if err = rows.Scan(&id, &name, &content); err != nil {
+			return res, err
+		}
+
+		c := &defs.CommentInfo{
+			Id:      id,
+			VideoId: vid,
+			Author:  name,
+			Content: content,
+		}
+
+		res = append(res, c)
+	}
+
+	defer stmtOut.Close()
+
+	return res, nil
 }

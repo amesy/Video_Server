@@ -22,7 +22,7 @@ var (
 	ErrorNotAuthUser = ErrResponse{
 		HttpSC: 401,
 		Error: Err{
-			Error:     "User authentication failed.",
+			Error:     "User anthentication failed.",
 			ErrorCode: "002",
 		},
 	}

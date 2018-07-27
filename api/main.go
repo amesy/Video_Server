@@ -2,7 +2,9 @@ package main
 
 import (
 	"github.com/julienschmidt/httprouter"
+	"log"
 	"net/http"
+	"video_server/api/session"
 )
 
 type middleWareHandler struct {
@@ -16,29 +18,32 @@ func NewMiddleWareHandler(r *httprouter.Router) http.Handler {
 }
 
 func (m middleWareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// check session
+	//check session
 	validateUserSession(r)
 	m.r.ServeHTTP(w, r)
 }
 
 func RegisterHandlers() *httprouter.Router {
+	log.Printf("preparing to post request\n")
 	router := httprouter.New()
 	router.POST("/user", CreateUser)
-	router.POST("/user/:user_name", Login)
-
+	router.POST("/user/:username", Login)
+	router.GET("/user/:username", GetUserInfo)
+	router.POST("/user/:username/videos", AddNewVideo)
+	router.GET("/user/:username/videos", ListAllVideos)
+	router.DELETE("/user/:username/videos/:vid-id", DeleteVideo)
+	router.POST("/videos/:vid-id/comments", PostComment)
+	router.GET("/videos/:vid-id/comments", ShowComments)
 	return router
 }
 
-func main() {
-	r := RegisterHandlers()
-	mh := NewMiddleWareHandler(r)
-	http.ListenAndServe(":8800", mh)
+func Prepare() {
+	session.LoadSessionsFromDB()
 }
 
-//handler -> validation(校验){1.request, 2.user} -> business logic(逻辑处理) -> response
-//1. data model
-//2. error handling.
-//
-//session
-//
-//main -> middleware -> defs(message, err) -> handlers -> dbops -> response
+func main() {
+	Prepare()
+	r := RegisterHandlers()
+	mh := NewMiddleWareHandler(r)
+	http.ListenAndServe(":8000", mh)
+}

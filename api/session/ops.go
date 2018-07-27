@@ -1,11 +1,12 @@
 package session
 
 import (
-	"Video_Server/api/dbops"
-	"Video_Server/api/defs"
-	"Video_Server/api/utils"
+	"fmt"
 	"sync"
 	"time"
+	"video_server/api/dbops"
+	"video_server/api/defs"
+	"video_server/api/utils"
 )
 
 var sessionMap *sync.Map
@@ -23,28 +24,29 @@ func deleteExpiredSession(sid string) {
 	dbops.DeleteSession(sid)
 }
 
-func LoadSessionFromDB() {
+func LoadSessionsFromDB() *sync.Map {
 	r, err := dbops.RetrieveAllSessions()
 	if err != nil {
-		return
+		return nil
 	}
-
 	r.Range(func(k, v interface{}) bool {
 		ss := v.(*defs.SimpleSession)
 		sessionMap.Store(k, ss)
 		return true
 	})
+	return sessionMap
 }
 
 func GenerateNewSessionId(un string) string {
 	id, _ := utils.NewUUID()
-	ct := nowInMilli()
-	ttl := ct + 30*60*1000 // Serverside session valid time: 30 min.
-
+	ct := time.Now().UnixNano() / 1000000
+	ttl := ct + 30*60*1000
 	ss := &defs.SimpleSession{Username: un, TTL: ttl}
 	sessionMap.Store(id, ss)
-	dbops.InserSession(id, ttl, un)
-
+	err := dbops.InsertSession(id, ttl, un)
+	if err != nil {
+		return fmt.Sprintf("Error of GenerateNewSessionId: %s", err)
+	}
 	return id
 }
 
@@ -56,9 +58,7 @@ func IsSessionExpired(sid string) (string, bool) {
 			deleteExpiredSession(sid)
 			return "", true
 		}
-
 		return ss.(*defs.SimpleSession).Username, false
 	}
-
 	return "", true
 }

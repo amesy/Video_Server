@@ -1,15 +1,13 @@
 package main
 
 import (
-	"Video_Server/api/defs"
-	"Video_Server/api/session"
 	"net/http"
+	"video_server/api/defs"
+	"video_server/api/session"
 )
 
-var (
-	HEADER_FIELD_SESSION = "X-Session-Id"
-	HEADER_FIELD_UNAME   = "X-User-Name"
-)
+var HEADER_FIELD_SESSION = "X-Session-Id"
+var HEADER_FIELD_UNAME = "X-User-Name"
 
 func validateUserSession(r *http.Request) bool {
 	sid := r.Header.Get(HEADER_FIELD_SESSION)
@@ -22,11 +20,12 @@ func validateUserSession(r *http.Request) bool {
 		return false
 	}
 
+	//如果没有过期,那么就把用户名加入到HEADER_FIELD_UNAME里面
 	r.Header.Add(HEADER_FIELD_UNAME, uname)
 	return true
 }
 
-func validateUser(w http.ResponseWriter, r *http.Request) bool {
+func ValidateUser(w http.ResponseWriter, r *http.Request) bool {
 	uname := r.Header.Get(HEADER_FIELD_UNAME)
 	if len(uname) == 0 {
 		sendErrorResponse(w, defs.ErrorNotAuthUser)

@@ -1,9 +1,9 @@
 package main
 
 import (
+	"net/http"
 	"github.com/julienschmidt/httprouter"
 	"log"
-	"net/http"
 	"video_server/api/session"
 )
 
@@ -12,7 +12,7 @@ type middleWareHandler struct {
 }
 
 func NewMiddleWareHandler(r *httprouter.Router) http.Handler {
-	m := middleWareHandler{}
+	m:=middleWareHandler{}
 	m.r = r
 	return m
 }
@@ -25,7 +25,7 @@ func (m middleWareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func RegisterHandlers() *httprouter.Router {
 	log.Printf("preparing to post request\n")
-	router := httprouter.New()
+	router:=httprouter.New()
 	router.POST("/user", CreateUser)
 	router.POST("/user/:username", Login)
 	router.GET("/user/:username", GetUserInfo)
@@ -43,7 +43,7 @@ func Prepare() {
 
 func main() {
 	Prepare()
-	r := RegisterHandlers()
-	mh := NewMiddleWareHandler(r)
+	r:=RegisterHandlers()
+	mh:=NewMiddleWareHandler(r)
 	http.ListenAndServe(":8000", mh)
 }

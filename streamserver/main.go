@@ -30,7 +30,6 @@ func (m middleWareHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusTooManyRequests, "Too many requests.")
 		return
 	}
-
 	m.r.ServeHTTP(w, r)
 	defer m.l.ReleaseConn()
 }

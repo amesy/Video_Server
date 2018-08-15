@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
+	"fmt"
 	"time"
 )
 
@@ -22,5 +22,5 @@ func TestNanoTime(t *testing.T) {
 	if 1 == 2 {
 		t.Errorf("Error")
 	}
-	fmt.Println(time.Now().UnixNano() / 1000000000)
+	fmt.Println(time.Now().UnixNano()/1000000000)
 }

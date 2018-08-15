@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 type ConnLimiter struct {
@@ -21,10 +22,9 @@ func (cl *ConnLimiter) GetConn() bool {
 		log.Printf("Reached the rate limitation.")
 		return false
 	}
-
 	cl.bucket <- 1
+	fmt.Println("count: ", cl.bucket)
 	log.Printf("Successfully got connection")
-
 	return true
 }
 

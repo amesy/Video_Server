@@ -1,8 +1,8 @@
 package session
 
 import (
-	"fmt"
 	"testing"
+	"fmt"
 )
 
 var tempsid string
@@ -18,13 +18,13 @@ func TestSessionWorkFlow(t *testing.T) {
 }
 
 func testGenerateNewSessionId(t *testing.T) {
-	sid := GenerateNewSessionId("skyone")
+	sid:=GenerateNewSessionId("skyone")
 	tempsid = sid
 	fmt.Printf("sid :%s\n", sid)
 }
 
 func testLoadSessionFromDB(t *testing.T) {
-	m := LoadSessionsFromDB()
+	m:=LoadSessionsFromDB()
 	m.Range(func(k, v interface{}) bool {
 		fmt.Printf("key= %s, value=%s\n", k, v)
 		return true

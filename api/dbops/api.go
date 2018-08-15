@@ -79,7 +79,7 @@ func AddNewVideo(aid int, name string) (*defs.VideoInfo, error) {
 	t := time.Now()
 	ctime := t.Format("Jan 02 2006, 15:04:05")
 	stmtIns, err := dbConn.Prepare(`INSERT INTO video_info
-		(id, author_id, name, display_ctime) VALUES(?,?,?,?)`)
+		(id, author_id, name, display_ctime, create_time) VALUES(?, ?, ?, ?, ?)`)
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +116,8 @@ func GetVideoInfo(vid string) (*defs.VideoInfo, error) {
 func ListVideoInfo(uname string, from, to int) ([]*defs.VideoInfo, error) {
 	stmtOut, err := dbConn.Prepare(`SELECT video_info.id, video_info.author_id, video_info.name, video_info.display_ctime FROM video_info
 		INNER JOIN users ON video_info.author_id = users.id
-		WHERE users.login_name=? AND video_info.create_time > FROM_UNIXTIME(?) AND video_info.create_time<=FROM_UNIXTIME(?)
-		OREDER BY video_info.create_time DESC`)
+		WHERE users.login_name=? AND video_info.create_time > FROM_UNIXTIME(?) AND video_info.create_time<=FROM_UNIXTIME(?)`)
+	// OREDER BY video_info.create_time DESC
 	var res []*defs.VideoInfo
 	if err != nil {
 		return res, err
